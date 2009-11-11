@@ -18,7 +18,7 @@ class TestClient < Test::Unit::TestCase
     response.videos.each { |v| assert_valid_video v }
   end
   
-    def test_should_respond_to_a_basic_query_with_offset_and_max_results
+  def test_should_respond_to_a_basic_query_with_offset_and_max_results
     response = @client.videos_by(:query => "penguin", :offset => 15, :max_results => 30)
   
     assert_equal "http://gdata.youtube.com/feeds/api/videos", response.feed_id
@@ -182,6 +182,11 @@ class TestClient < Test::Unit::TestCase
 
     video = @client.video_by("EkF4JD2rO3Q")
     assert_valid_video video
+  end
+
+  def test_should_get_playlists_by_user
+    response = @client.playlists_by(:user => 'liz')
+    assert_equal "http://gdata.youtube.com/feeds/api/users/liz/playlists", response.feed_id
   end
   
   private

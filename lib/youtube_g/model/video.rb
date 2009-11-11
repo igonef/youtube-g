@@ -62,11 +62,14 @@ class YouTubeG
       attr_reader :noembed
       
       # *Fixnum*:: Specifies the order in which the video appears in a playlist.
-      attr_reader :position
+      attr_reader :ut_position
       
       # *Boolean*:: Specifies that a video is flagged as adult or not.
       attr_reader :racy
       
+      # *String*: Specifies playlist unique ID.
+      attr_reader :playlist_id
+
       # *String*: Specifies a URI that uniquely and permanently identifies the video.
       attr_reader :video_id
       
@@ -143,9 +146,27 @@ class YouTubeG
       # === Returns
       #   String: The Youtube video id.
       def unique_id
-        video_id[/videos\/([^<]+)/, 1]
+        if playlist_id
+          embed_url[/v\/([^<]+)/, 1]
+        else
+          video_id[/videos\/([^<]+)/, 1]
+        end
       end
       
+      # The ID of the video in playlist.
+      #
+      # === Example
+      #   >> video.in_playlist_id
+      #   => "ZTUVgYoeN_o"
+      #
+      # === Returns
+      #   String: The Youtube video id.
+      def in_playlist_id
+        if playlist_id
+          video_id[/#{playlist_id}\/([^<]+)/, 1]
+        end
+      end
+
       # Allows you to check whether the video can be embedded on a webpage.
       #
       # === Returns

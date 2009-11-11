@@ -50,10 +50,24 @@ Standard feeds:
   client.videos_by(:most_viewed)
   client.videos_by(:most_linked, :page => 3)
   client.videos_by(:top_rated, :time => :today)
-	
+
 Advanced queries (with boolean operators OR (either), AND (include), NOT (exclude)):
 	
   client.videos_by(:categories => { :either => [:news, :sports], :exclude => [:comedy] }, :tags => { :include => ['football'], :exclude => ['soccer'] })
+
+User's playlists feed:
+
+  client.playlists_by(:user => 'user_name')
+
+Playlist videos feeds:
+
+  client.videos_by_playlist(:playlist_id => playlist_id)
+  client.videos_by_playlist(:playlist_id => playlist_id, :page => 2)
+  client.videos_by_playlist(:playlist_id => playlist_id, :page => 2, :per_page => 3)
+
+Playlist video feed:
+
+  client.videos_by_playlist(:playlist_id => playlist_id, :playlist_video_id => playlist_video_id)
 
 == LOGGING
 

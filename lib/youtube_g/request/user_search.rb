@@ -1,5 +1,5 @@
 class YouTubeG
-  module Request #:nodoc:  
+  module Request #:nodoc:
     class UserSearch < BaseSearch #:nodoc:      
       attr_reader :max_results                     # max_results
       attr_reader :order_by                        # orderby, ([relevance], viewCount, published, rating)
@@ -16,6 +16,12 @@ class YouTubeG
           @url << "#{params[:user]}/favorites"
           set_instance_variables(params)
           break
+        elsif params == :playlists
+          @url << "#{options[:user]}/playlists"
+          set_instance_variables(options)
+        elsif params[:user] && options[:playlists]
+          @url << "#{params[:user]}/playlists"
+          set_instance_variables(options)
         elsif params[:user]
           @url << "#{params[:user]}/uploads"
           set_instance_variables(params)
