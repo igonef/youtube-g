@@ -58,10 +58,12 @@ end
   model/user
   model/video
   request/base_search
+  request/playlist_video_search
   request/user_search
   request/standard_search
   request/video_upload
   request/video_search
   response/video_search
+  response/playlist_search
   chain_io
 ).each{|m| require File.dirname(__FILE__) + '/youtube_g/' + m }
