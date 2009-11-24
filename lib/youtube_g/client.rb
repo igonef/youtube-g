@@ -1,6 +1,7 @@
 class YouTubeG
   class Client
     include YouTubeG::Logging
+    include Utils
     
     # Previously this was a logger instance but we now do it globally
     def initialize(legacy_debug_flag = nil)
@@ -85,6 +86,48 @@ class YouTubeG
       end
     end
 
+    # Retrieves an array channels.
+    #
+    # === Parameters
+    # If fetching channels:
+    #   params<Hash>::  :query, :alt (default is ATOM), :strict (default is false),
+    #                   :page (default is 1) and :per_page(default is 25)
+    #
+    # === Returns
+    # YouTubeG::Response::PlaylistSearch
+    def channels_by(params={})
+
+      params[:page] = integer_or_default(params[:page], 1)
+
+      unless params[:max_results]
+        params[:max_results] = integer_or_default(params[:per_page], 25)
+      end
+
+      unless params[:offset]
+        params[:offset] = calculate_offset(params[:page], params[:max_results])
+      end
+
+      request = YouTubeG::Request::ChannelSearch.new(params)
+
+      logger.debug "Submitting request [url=#{request.url}]." if logger
+      parser = YouTubeG::Parser::ChannelsFeedParser.new(request.url)
+      parser.parse
+    end
+
+    # Retrieves a single YouTube channel.
+    #
+    # === Parameters
+    #   chid<String>:: The ID or URL of the playlist that you'd like to retrieve.
+    #
+    # === Returns
+    # YouTubeG::Model::Channel
+    def channel_by(chid)
+      channel_id = chid =~ /^http/ ? chid : "http://gdata.youtube.com/feeds/playchannels/#{chid}?v=2"
+      logger.debug "Submitting request [url=#{channel_id}]." if logger
+      parser = YouTubeG::Parser::ChannelFeedParser.new(channel_id)
+      parser.parse
+    end
+
     # Retrieves an array of standard feed, custom query, or user videos.
     # 
     # === Parameters
@@ -151,15 +194,5 @@ class YouTubeG
       parser.parse
     end
     
-    private
-    
-    def calculate_offset(page, per_page)
-      page == 1 ? 1 : ((per_page * page) - per_page + 1)
-    end
-    
-    def integer_or_default(value, default)
-      value = value.to_i
-      value > 0 ? value : default
-    end
   end
 end

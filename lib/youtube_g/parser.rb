@@ -308,5 +308,93 @@ class YouTubeG
 
     end
 
+    class ChannelFeedParser < FeedParser #:nodoc:
+
+      def parse_content(content)
+        doc = REXML::Document.new(content)
+        entry = doc.elements["entry"]
+        parse_entry(entry)
+      end
+
+    private
+
+      def parse_entry(entry)
+        id = entry.elements["id"].text
+        updated_at = Time.parse(entry.elements["updated"].text)
+        categories = []
+        entry.elements.each("category") do |category|
+          # determine if  it's really a category, or just a keyword
+          scheme = category.attributes["scheme"]
+          if (scheme =~ /\/categories\.cat$/)
+            # it's a category
+            categories << YouTubeG::Model::Category.new(
+                            :term => category.attributes["term"],
+                            :label => category.attributes["label"])
+          end
+        end
+
+        title = entry.elements["title"].text
+        summary = entry.elements["summary"].text
+
+        # parse the author
+        author_element = entry.elements["author"]
+        author = nil
+        unless author_element.blank?
+          author = YouTubeG::Model::Author.new(
+                     :name => author_element.elements["name"].text,
+                     :uri => author_element.elements["uri"].text)
+        end
+
+        feed_link_element = entry.elements["gd:feedLink"]
+        if feed_link_element
+          feed_link = feed_link_element.attributes["href"]
+          count_hint = feed_link_element.attributes["countHint"].to_i
+        else
+          count_hint = 0
+        end
+
+        YouTubeG::Model::Channel.new(
+          :id => id,
+          :updated_at => updated_at,
+          :categories => categories,
+          :title => title,
+          :summary => summary,
+          :author => author,
+          :videos_link => feed_link,
+          :count_hint => count_hint
+        )
+      end
+
+    end
+
+    class ChannelsFeedParser < ChannelFeedParser #:nodoc:
+
+    private
+      def parse_content(content)
+        doc = REXML::Document.new(content)
+        feed = doc.elements["feed"]
+
+        feed_id = feed.elements["id"].text
+        updated_at = Time.parse(feed.elements["updated"].text)
+        total_result_count = feed.elements["openSearch:totalResults"].text.to_i
+        offset = feed.elements["openSearch:startIndex"].text.to_i
+        max_result_count = feed.elements["openSearch:itemsPerPage"].text.to_i
+
+        channels = []
+        feed.elements.each("entry") do |entry|
+          channels << parse_entry(entry)
+        end
+
+        YouTubeG::Response::ChannelSearch.new(
+          :feed_id => feed_id,
+          :updated_at => updated_at,
+          :total_result_count => total_result_count,
+          :offset => offset,
+          :max_result_count => max_result_count,
+          :channels => channels)
+      end
+    end
+
+
   end
 end
