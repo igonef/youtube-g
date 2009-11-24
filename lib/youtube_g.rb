@@ -45,11 +45,13 @@ end
 
 %w( 
   version
+  utils
   client
   record
   parser
   model/author
   model/category
+  model/channel
   model/contact
   model/content
   model/playlist
@@ -58,6 +60,7 @@ end
   model/user
   model/video
   request/base_search
+  request/channel_search
   request/playlist_video_search
   request/user_search
   request/standard_search
@@ -65,5 +68,6 @@ end
   request/video_search
   response/video_search
   response/playlist_search
+  response/channel_search
   chain_io
 ).each{|m| require File.dirname(__FILE__) + '/youtube_g/' + m }
