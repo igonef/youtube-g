@@ -4,14 +4,14 @@ class YouTubeG
       def initialize(url)
         @url = url
       end
-      
+
       def parse
         parse_content open(@url).read
-      end      
+      end
     end
 
     class VideoFeedParser < FeedParser #:nodoc:
-      
+
       def parse_content(content)
         doc = REXML::Document.new(content)
         entry = doc.elements["entry"]
@@ -55,7 +55,7 @@ class YouTubeG
                      :name => author_element.elements["name"].text,
                      :uri => author_element.elements["uri"].text)
         end
-      
+
         media_group = entry.elements["media:group"]
         description = media_group.elements["media:description"].text
         duration = media_group.elements["yt:duration"].attributes["seconds"].to_i
@@ -127,7 +127,7 @@ class YouTubeG
           :longitude => longitude)
       end
 
-      def parse_media_content (media_content_element) 
+      def parse_media_content (media_content_element)
         content_url = media_content_element.attributes["url"]
         format_code = media_content_element.attributes["yt:format"].to_i
         format = YouTubeG::Model::Video::Format.by_code(format_code)
@@ -141,7 +141,7 @@ class YouTubeG
           :duration => duration,
           :mime_type => mime_type,
           :default => default)
-      end      
+      end
     end
 
     class VideosFeedParser < VideoFeedParser #:nodoc:
@@ -181,7 +181,7 @@ class YouTubeG
       end
 
     protected
-    
+
       def parse_entry(entry)
         playlist_id = entry.elements["id"].text
         published_at = Time.parse(entry.elements["published"].text)
@@ -205,7 +205,7 @@ class YouTubeG
 
         title = entry.elements["title"].text
         html_content = entry.elements["content"].text
-        
+
         # parse the author
         author_element = entry.elements["author"]
         author = nil
@@ -319,8 +319,10 @@ class YouTubeG
     private
 
       def parse_entry(entry)
-        id = entry.elements["id"].text
-        updated_at = Time.parse(entry.elements["updated"].text)
+        id_elm = entry.elements["id"]
+        id = id_elm.text unless id_elm.blank?
+        updated_elm = entry.elements["updated"]
+        updated_at = Time.parse(updated_elm.text) unless updated_elm.blank?
         categories = []
         entry.elements.each("category") do |category|
           # determine if  it's really a category, or just a keyword
@@ -332,9 +334,11 @@ class YouTubeG
                             :label => category.attributes["label"])
           end
         end
+        title_elm = entry.elements["title"]
+        title = title_elm.text unless title_elm.blank?
 
-        title = entry.elements["title"].text
-        summary = entry.elements["summary"].text
+        summary_elm = entry.elements["summary"]
+        summary = summary_elm.text unless summary_elm.blank?
 
         # parse the author
         author_element = entry.elements["author"]
@@ -354,7 +358,7 @@ class YouTubeG
         end
 
         YouTubeG::Model::Channel.new(
-          :id => id,
+          :channel_id => id,
           :updated_at => updated_at,
           :categories => categories,
           :title => title,
@@ -394,7 +398,5 @@ class YouTubeG
           :channels => channels)
       end
     end
-
-
   end
 end
