@@ -1,16 +1,17 @@
 class YouTubeG
   module Request #:nodoc:
-    class UserSearch < BaseSearch #:nodoc:      
+    class UserSearch < BaseSearch #:nodoc:
       attr_reader :max_results                     # max_results
       attr_reader :order_by                        # orderby, ([relevance], viewCount, published, rating)
       attr_reader :offset                          # start-index
+      attr_reader :time                            # time
 
       def initialize(params, options={})
-        @max_results, @order_by, @offset = nil
+        @max_results, @order_by, @offset, @time = nil
         @url = base_url
 
         if params == :favorites
-          @url << "#{options[:user]}/favorites" 
+          @url << "#{options[:user]}/favorites"
           set_instance_variables(options)
         elsif params[:user] && options[:favorites]
           @url << "#{params[:user]}/favorites"
@@ -26,7 +27,7 @@ class YouTubeG
           @url << "#{params[:user]}/uploads"
           set_instance_variables(params)
         end
-        
+
         @url << build_query_params(to_youtube_params)
       end
 
@@ -40,10 +41,11 @@ class YouTubeG
         {
           'max-results' => @max_results,
           'orderby' => @order_by,
-          'start-index' => @offset
+          'start-index' => @offset,
+          'time' => @time
         }
       end
     end
-    
+
   end
 end
