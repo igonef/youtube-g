@@ -44,8 +44,8 @@ class YouTubeG
           end
         end
 
-        title = entry.elements["title"].text
-        html_content = entry.elements["content"].text
+        title = entry.elements["title"].text if entry.elements["title"]
+        html_content = entry.elements["content"].text if entry.elements["content"]
 
         # parse the author
         author_element = entry.elements["author"]
@@ -57,15 +57,15 @@ class YouTubeG
         end
 
         media_group = entry.elements["media:group"]
-        description = media_group.elements["media:description"].text
-        duration = media_group.elements["yt:duration"].attributes["seconds"].to_i
+        description = media_group.elements["media:description"].text if media_group.elements["media:description"]
+        duration = media_group.elements["yt:duration"].attributes["seconds"].to_i if media_group.elements["yt:duration"] && media_group.elements["yt:duration"].attributes["seconds"]
 
         media_content = []
         media_group.elements.each("media:content") do |mce|
           media_content << parse_media_content(mce)
         end
 
-        player_url = media_group.elements["media:player"].attributes["url"]
+        player_url = media_group.elements["media:player"].attributes["url"] if media_group.elements["media:player"]
 
         # parse thumbnails
         thumbnails = []
@@ -101,30 +101,34 @@ class YouTubeG
           latitude, longitude = position.split(" ")
         end
 
-        YouTubeG::Model::Video.new(
-          :video_id => video_id,
-          :playlist_id => playlist_id,
-          :published_at => published_at,
-          :updated_at => updated_at,
-          :categories => categories,
-          :keywords => keywords,
-          :title => title,
-          :html_content => html_content,
-          :author => author,
-          :description => description,
-          :ut_position => ut_position,
-          :duration => duration,
-          :media_content => media_content,
-          :player_url => player_url,
-          :thumbnails => thumbnails,
-          :rating => rating,
-          :view_count => view_count,
-          :noembed => noembed,
-          :racy => racy,
-          :where => where,
-          :position => position,
-          :latitude => latitude,
-          :longitude => longitude)
+        if player_url
+          YouTubeG::Model::Video.new(
+            :video_id => video_id,
+            :playlist_id => playlist_id,
+            :published_at => published_at,
+            :updated_at => updated_at,
+            :categories => categories,
+            :keywords => keywords,
+            :title => title,
+            :html_content => html_content,
+            :author => author,
+            :description => description,
+            :ut_position => ut_position,
+            :duration => duration,
+            :media_content => media_content,
+            :player_url => player_url,
+            :thumbnails => thumbnails,
+            :rating => rating,
+            :view_count => view_count,
+            :noembed => noembed,
+            :racy => racy,
+            :where => where,
+            :position => position,
+            :latitude => latitude,
+            :longitude => longitude)
+        else
+          nil
+        end
       end
 
       def parse_media_content (media_content_element)
@@ -159,7 +163,8 @@ class YouTubeG
 
         videos = []
         feed.elements.each("entry") do |entry|
-          videos << parse_entry(entry)
+          video = parse_entry(entry)
+          videos << video unless video.blank?
         end
 
         YouTubeG::Response::VideoSearch.new(
